@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net452;net461;net50;</TargetFrameworks>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+		<Version>1.0.0.0</Version>
+		<PackageId>IocpSharp</PackageId>
+		<Product>IocpSharp</Product>
+		<Company>jazor.net</Company>
+		<Authors>jazor.net</Authors>
+		<RootNamespace>IocpSharp</RootNamespace>
+		<AssemblyName>IocpSharp</AssemblyName>
+		<Optimize>true</Optimize>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+		<OutputPath>.\bin\Debug</OutputPath>
+		<DefineConstants>TRACE;DEBUG;</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+		<OutputPath>.\bin\Release</OutputPath>
+		<DefineConstants>TRACE;</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
+		<DefineConstants>NET452;FW</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+		<DefineConstants>NET461;FW</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net50'">
+		<DefineConstants>NET5</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="README.md" />
+	</ItemGroup>
+</Project>
