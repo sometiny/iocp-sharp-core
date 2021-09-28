@@ -34,6 +34,7 @@
 		<DefineConstants>NET5</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+	  <None Remove=".gitignore" />
 	  <None Remove="README.md" />
 	</ItemGroup>
 </Project>
