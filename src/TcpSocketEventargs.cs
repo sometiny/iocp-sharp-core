@@ -75,9 +75,9 @@ namespace IocpSharp
         /// <param name="remoteEndpoint"></param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
-        public void ConnectAsync(AddressFamily addressFamily, EndPoint remoteEndpoint, AsyncConnectCallback callback, object state)
+        public void ConnectAsync(EndPoint remoteEndpoint, AsyncConnectCallback callback, object state)
         {
-            ConnectAsync(addressFamily, remoteEndpoint, null, 0,0, callback, state);
+            ConnectAsync(remoteEndpoint, null, 0,0, callback, state);
         }
 
         /// <summary>
@@ -90,11 +90,20 @@ namespace IocpSharp
         /// <param name="count"></param>
         /// <param name="callback"></param>
         /// <param name="state"></param>
-        public void ConnectAsync(AddressFamily addressFamily, EndPoint remoteEndpoint, byte[] buffer, int offset, int count, AsyncConnectCallback callback, object state)
+        public void ConnectAsync(EndPoint remoteEndpoint, byte[] buffer, int offset, int count, AsyncConnectCallback callback, object state)
         {
-            if (remoteEndpoint is IPEndPoint) addressFamily = remoteEndpoint.AddressFamily;
+            Socket socket = null;
+            if (remoteEndpoint is IPEndPoint)
+            {
+                socket = new Socket(remoteEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            }
+            else
+            {
+                socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                socket.DualMode = true;
+            }
 
-            Socket socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            
             ConnectAsync(socket, remoteEndpoint, buffer, offset, count, callback, state);
         }
 
@@ -196,6 +205,17 @@ namespace IocpSharp
             }
         }
 
+        public void Clearup()
+        {
+            _asyncReadCallback = null;
+            _asyncWriteCallback = null;
+            _asyncConnectCallback = null;
+            SetBuffer(null, 0, 0);
+            UserToken = null;
+            RemoteEndPoint = null;
+            AcceptSocket = null;
+        }
+
         private static ConcurrentStack<TcpSocketAsyncEventArgs> _stacks = new ConcurrentStack<TcpSocketAsyncEventArgs>();
         /// <summary>
         /// 从栈中获取一个TcpSocketAsyncEventArgs实例
@@ -215,11 +235,7 @@ namespace IocpSharp
         /// <param name="e"></param>
         public static void Push(TcpSocketAsyncEventArgs e)
         {
-            e._asyncReadCallback = null;
-            e._asyncWriteCallback = null;
-            e.SetBuffer(null, 0, 0);
-            e.UserToken = null;
-            e.RemoteEndPoint = null;
+            e.Clearup();
             _stacks.Push(e);
         }
     }
