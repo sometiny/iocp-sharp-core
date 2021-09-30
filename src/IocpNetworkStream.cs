@@ -94,10 +94,10 @@ namespace IocpSharp
         /// <summary>
         /// 基础流读取到数据后
         /// </summary>
-        /// <param name="bytesReceived"></param>
         /// <param name="errorCode"></param>
+        /// <param name="bytesReceived"></param>
         /// <param name="state"></param>
-        private void AfterRead(int bytesReceived, int errorCode, object state)
+        private void AfterRead(int errorCode, int bytesReceived, object state)
         {
             ReadWriteArgs args = state as ReadWriteArgs;
             IocpReadWriteResult result = args.AsyncResult;

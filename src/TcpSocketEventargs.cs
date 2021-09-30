@@ -25,6 +25,15 @@ namespace IocpSharp
     public delegate void AsyncWriteCallback(int errorCode, object state);
 
     /// <summary>
+    /// 异步连接的委托
+    /// </summary>
+    /// <param name="connectedSocket"></param>
+    /// <param name="bytesReceived">接收到的字节数</param>
+    /// <param name="errorCode"></param>
+    /// <param name="state"></param>
+    public delegate void AsyncConnectCallback(int errorCode, Socket connectedSocket, int bytesReceived,object state);
+
+    /// <summary>
     /// TcpSocketAsyncEventArgs类用于数据的异步读写，不需要事件，直接内部重写OnCompleted方法。
     /// 其实就是把事件封装到了回调。
     /// </summary>
@@ -33,6 +42,7 @@ namespace IocpSharp
 
         private AsyncReadCallback _asyncReadCallback = null;
         private AsyncWriteCallback _asyncWriteCallback = null;
+        private AsyncConnectCallback _asyncConnectCallback = null;
         /// <summary>
         /// 重写SocketAsyncEventArgs的OnCompleted方法
         /// 实现我们自己的逻辑
@@ -40,9 +50,14 @@ namespace IocpSharp
         /// <param name="e"></param>
         protected override void OnCompleted(SocketAsyncEventArgs e)
         {
-            if(e.LastOperation == SocketAsyncOperation.Receive && _asyncReadCallback != null)
+            if (e.LastOperation == SocketAsyncOperation.Connect && _asyncConnectCallback != null)
             {
-                _asyncReadCallback(e.BytesTransferred, (int)e.SocketError, UserToken);
+                _asyncConnectCallback((int)e.SocketError, e.ConnectSocket, e.BytesTransferred, UserToken);
+                return;
+            }
+            if (e.LastOperation == SocketAsyncOperation.Receive && _asyncReadCallback != null)
+            {
+                _asyncReadCallback((int)e.SocketError, e.BytesTransferred, UserToken);
                 return;
             }
             if (e.LastOperation == SocketAsyncOperation.Send && _asyncWriteCallback != null)
@@ -51,6 +66,78 @@ namespace IocpSharp
                 return;
             }
             base.OnCompleted(e);
+        }
+
+        /// <summary>
+        /// 异步连接远程服务器
+        /// </summary>
+        /// <param name="addressFamily"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        public void ConnectAsync(AddressFamily addressFamily, EndPoint remoteEndpoint, AsyncConnectCallback callback, object state)
+        {
+            ConnectAsync(addressFamily, remoteEndpoint, null, 0,0, callback, state);
+        }
+
+        /// <summary>
+        /// 异步连接远程服务器
+        /// </summary>
+        /// <param name="addressFamily"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        public void ConnectAsync(AddressFamily addressFamily, EndPoint remoteEndpoint, byte[] buffer, int offset, int count, AsyncConnectCallback callback, object state)
+        {
+            if (remoteEndpoint is IPEndPoint) addressFamily = remoteEndpoint.AddressFamily;
+
+            Socket socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            ConnectAsync(socket, remoteEndpoint, buffer, offset, count, callback, state);
+        }
+
+        /// <summary>
+        /// 异步连接远程服务器
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        public void ConnectAsync(Socket socket, EndPoint remoteEndpoint, AsyncConnectCallback callback, object state) {
+
+            ConnectAsync(socket, remoteEndpoint, null, 0, 0, callback, state);
+        }
+
+        /// <summary>
+        /// 异步连接远程服务器
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <param name="callback"></param>
+        /// <param name="state"></param>
+        public void ConnectAsync(Socket socket, EndPoint remoteEndpoint, byte[] buffer, int offset, int count, AsyncConnectCallback callback, object state)
+        {
+
+            _asyncConnectCallback = callback ?? throw new ArgumentNullException("callback");
+            UserToken = state;
+            RemoteEndPoint = remoteEndpoint;
+            if (buffer != null) SetBuffer(buffer, offset, count);
+            try
+            {
+                if (!socket.ConnectAsync(this))
+                {
+                    OnCompleted(this);
+                }
+            }
+            catch (SocketException e)
+            {
+                _asyncConnectCallback(e.ErrorCode, null, 0, UserToken);
+            }
         }
 
         /// <summary>
@@ -65,13 +152,19 @@ namespace IocpSharp
         /// <returns></returns>
         public void ReadAsync(Socket socket, byte[] buffer, int offset, int size, AsyncReadCallback callback, object state)
         {
-            //Console.WriteLine("TcpSocketAsyncEventArgs.ReadAsync");
-            _asyncReadCallback = callback;
+            _asyncReadCallback = callback ?? throw new ArgumentNullException("callback") ;
             UserToken = state;
             SetBuffer(buffer, offset, size);
-            if (!socket.ReceiveAsync(this))
+            try
             {
-                OnCompleted(this);
+                if (!socket.ReceiveAsync(this))
+                {
+                    OnCompleted(this);
+                }
+            }
+            catch (SocketException e)
+            {
+                _asyncReadCallback(e.ErrorCode, 0, UserToken);
             }
         }
 
@@ -87,13 +180,19 @@ namespace IocpSharp
         /// <returns></returns>
         public void WriteAsync(Socket socket, byte[] buffer, int offset, int size, AsyncWriteCallback callback, object state)
         {
-            //Console.WriteLine("TcpSocketAsyncEventArgs.WriteAsync");
-            _asyncWriteCallback = callback;
+            _asyncWriteCallback = callback ?? throw new ArgumentNullException("callback");
             UserToken = state;
             SetBuffer(buffer, offset, size);
-            if (!socket.SendAsync(this))
+            try
             {
-                OnCompleted(this);
+                if (!socket.SendAsync(this))
+                {
+                    OnCompleted(this);
+                }
+            }
+            catch (SocketException e)
+            {
+                _asyncWriteCallback(e.ErrorCode, UserToken);
             }
         }
 
@@ -120,6 +219,7 @@ namespace IocpSharp
             e._asyncWriteCallback = null;
             e.SetBuffer(null, 0, 0);
             e.UserToken = null;
+            e.RemoteEndPoint = null;
             _stacks.Push(e);
         }
     }
