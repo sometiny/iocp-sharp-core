@@ -31,7 +31,7 @@ namespace IocpSharp
     /// <param name="bytesReceived">接收到的字节数</param>
     /// <param name="errorCode"></param>
     /// <param name="state"></param>
-    public delegate void AsyncConnectCallback(int errorCode, Socket connectedSocket, int bytesReceived,object state);
+    public delegate void AsyncConnectCallback(int errorCode, Socket connectedSocket, object state);
 
     /// <summary>
     /// TcpSocketAsyncEventArgs类用于数据的异步读写，不需要事件，直接内部重写OnCompleted方法。
@@ -52,7 +52,7 @@ namespace IocpSharp
         {
             if (e.LastOperation == SocketAsyncOperation.Connect && _asyncConnectCallback != null)
             {
-                _asyncConnectCallback((int)e.SocketError, e.ConnectSocket, e.BytesTransferred, UserToken);
+                _asyncConnectCallback((int)e.SocketError, e.ConnectSocket, UserToken);
                 return;
             }
             if (e.LastOperation == SocketAsyncOperation.Receive && _asyncReadCallback != null)
@@ -145,7 +145,7 @@ namespace IocpSharp
             }
             catch (SocketException e)
             {
-                _asyncConnectCallback(e.ErrorCode, null, 0, UserToken);
+                _asyncConnectCallback(e.ErrorCode, null, UserToken);
             }
         }
 
