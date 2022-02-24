@@ -83,7 +83,6 @@ namespace IocpSharp
         /// <summary>
         /// 异步连接远程服务器
         /// </summary>
-        /// <param name="addressFamily"></param>
         /// <param name="remoteEndpoint"></param>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
