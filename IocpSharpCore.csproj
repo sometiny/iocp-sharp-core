@@ -2,16 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net452;net461;net50;</TargetFrameworks>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
-		<FileVersion>1.0.0.0</FileVersion>
-		<Version>1.0.0.0</Version>
-		<PackageId>IocpSharp</PackageId>
-		<Product>IocpSharp</Product>
-		<Company>jazor.net</Company>
-		<Authors>jazor.net</Authors>
-		<RootNamespace>IocpSharp</RootNamespace>
-		<AssemblyName>IocpSharp</AssemblyName>
-		<Optimize>true</Optimize>
+		<OutputType>Library</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<NoWarn>1701;1702;CS0649;CS8602;CS8618;CS8604;CS8632;SYSLIB0003;SYSLIB0004</NoWarn>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
