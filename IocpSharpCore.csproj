@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net452;net461;net50;</TargetFrameworks>
+		<TargetFrameworks>net462;net50;</TargetFrameworks>
 		<OutputType>Library</OutputType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NoWarn>1701;1702;CS0649;CS8602;CS8618;CS8604;CS8632;SYSLIB0003;SYSLIB0004</NoWarn>
@@ -17,10 +17,7 @@
 		<DefineConstants>TRACE;</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
-		<DefineConstants>NET452;FW</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
 		<DefineConstants>NET461;FW</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net50'">
